@@ -41,19 +41,37 @@ Map.addLayer(composite, {bands: ['B4', 'B3', 'B2'], min: 0, max: 0.3}, 'RGB', tr
 
 Map.addLayer(sample, {color: 'yellow'}, 'sample');
 
-// 1000m buffer all points 
-var buff1000 = sample.map(function(f) {
-  return f.buffer(1000, 1); // Note that the errorMargin is set to 100.
+// 3000m buffer all points 
+var buff3000 = sample.map(function(f) {
+  return f.buffer(3000, 1); // Note that the errorMargin is set to 100.
 });
-Map.addLayer(buff1000, {color: 'green'}, '1000buff', true);
+Map.addLayer(buff3000, {color: 'green'}, '1000buff', true);
 
 // NDVI of site
 var ndvi = imgclip.normalizedDifference(['B8', 'B4']);
-var ndviParams =  {
+var ndviParams =  {min: -0.2, max: 0.8, palette: 'FFFFFF, CE7E45, DF923D, F1B555, FCD163, 99B718, 74A901, 66A000, 529400,' +
+    '3E8601, 207401, 056201, 004C00, 023B01, 012E01, 011D01, 011301'};
+  /*{
   min: 0.0,
   max: 1.0,
   palette: [
     'blue', 'white', 'green'
   ],
-};
+};*/
 Map.addLayer(ndvi, ndviParams, 'NDVI image', true);
+
+//NDBI
+var ndbi = imgclip.normalizedDifference(['B11', 'B8']);
+
+// Display the result.
+var ndbiParams = {min: -1, max: 0,  palette: ['blue', 'blue', 'grey'
+
+  ],
+};
+Map.addLayer(ndbi, ndbiParams, 'NDBI image', true);
+
+print(ndbi, "ndbi")
+
+
+
+
