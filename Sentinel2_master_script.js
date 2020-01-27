@@ -1,3 +1,18 @@
+var sample = ee.FeatureCollection("users/shreenapyakurel/Sample_Sites"),
+    AOI = 
+    /* color: #ffc82d */
+    /* shown: false */
+    /* displayProperties: [
+      {
+        "type": "rectangle"
+      }
+    ] */
+    ee.Geometry.Polygon(
+        [[[-72.30321260892146, 42.69707031707116],
+          [-72.30321260892146, 42.02124129930544],
+          [-71.53416964017146, 42.02124129930544],
+          [-71.53416964017146, 42.69707031707116]]], null, false);
+
 // Function to mask clouds using the Sentinel-2 QA band.
 function maskS2clouds(image) {
   var qa = image.select('QA60')
