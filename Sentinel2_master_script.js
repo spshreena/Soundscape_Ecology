@@ -103,3 +103,33 @@ Map.addLayer(ndbiimage, ndbiParams, 'NDBI clip', true);
 
 var tcc_clip = composite.clip(buff3000)
 Map.addLayer(tcc_clip, {bands: ['B4', 'B3', 'B2'], min: 0, max: 0.3}, 'clip_RGB', true)
+
+// 2500m buffer all points 
+var buff2500 = sample.map(function(f) {
+  return f.buffer(2500, 1); // Note that the errorMargin is set to 100.
+});
+Map.addLayer(buff2500, {color: 'green'}, '2500buff', true);
+
+// 2000m buffer all points 
+var buff2000 = sample.map(function(f) {
+  return f.buffer(2000, 1); // Note that the errorMargin is set to 100.
+});
+Map.addLayer(buff2000, {color: 'green'}, '2000buff', true);
+
+// 1500m buffer all points 
+var buff1500 = sample.map(function(f) {
+  return f.buffer(1500, 1); // Note that the errorMargin is set to 100.
+});
+Map.addLayer(buff1500, {color: 'green'}, '1500buff', true);
+
+// 1000m buffer all points 
+var buff1000 = sample.map(function(f) {
+  return f.buffer(1000, 1); // Note that the errorMargin is set to 100.
+});
+Map.addLayer(buff1000, {color: 'green'}, '1000buff', true);
+
+// 500m buffer all points 
+var buff500 = sample.map(function(f) {
+  return f.buffer(500, 1); // Note that the errorMargin is set to 100.
+});
+Map.addLayer(buff500, {color: 'green'}, '500buff', true);
