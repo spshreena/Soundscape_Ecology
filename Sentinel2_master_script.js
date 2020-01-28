@@ -104,8 +104,6 @@ Map.addLayer(ndbiimage, ndbiParams, 'NDBI clip', true);
 var tcc_clip = composite.clip(buff3000)
 Map.addLayer(tcc_clip, {bands: ['B4', 'B3', 'B2'], min: 0, max: 0.3}, 'clip_RGB', true)
 
-
-
 // 2500m buffer all points 
 var buff2500 = sample.map(function(f) {
   return f.buffer(2500, 1); // Note that the errorMargin is set to 100.
