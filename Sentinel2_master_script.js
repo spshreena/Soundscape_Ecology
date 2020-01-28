@@ -133,3 +133,182 @@ var buff500 = sample.map(function(f) {
   return f.buffer(500, 1); // Note that the errorMargin is set to 100.
 });
 Map.addLayer(buff500, {color: 'green'}, '500buff', true);
+
+
+
+//MEAN VALUE CALCULATIONS FOR INDICES
+
+//NDVI
+
+
+
+
+// Reduce the region for the Laughing Brook Site. The region parameter is the Feature geometry of the site.
+var ndviMean_site = ndvi.reduceRegion({
+  reducer: ee.Reducer.mean(),
+  geometry: laughingbrook,
+  scale: 30,
+  maxPixels: 1e9
+});
+
+// The result is a Dictionary.  Print it.
+print('Laughing Brook Site NDVI Mean: ',ndviMean_site);
+
+// Reduce the region for the Buffer 3000 site. The region parameter is the Feature geometry of the site.
+var ndviMean_buffer3000 = ndvi.reduceRegion({
+  reducer: ee.Reducer.mean(),
+  geometry: buffer3000,
+  scale: 30,
+  maxPixels: 1e9
+});
+
+// The result is a Dictionary.  Print it.
+print('Buffer 3000 NDVI Mean: ', ndviMean_buffer3000);
+
+
+
+
+// Reduce the region for the Buffer 2500 site. The region parameter is the Feature geometry of the site.
+var ndviMean_buffer2500 = ndvi.reduceRegion({
+  reducer: ee.Reducer.mean(),
+  geometry: buffer2500,
+  scale: 30,
+  maxPixels: 1e9
+});
+
+// The result is a Dictionary.  Print it.
+print('Buffer 2500 NDVI Mean: ', ndviMean_buffer2500);
+
+
+// Reduce the region for the Buffer 2000 site. The region parameter is the Feature geometry of the site.
+var ndviMean_buffer2000 = ndvi.reduceRegion({
+  reducer: ee.Reducer.mean(),
+  geometry: buffer2000,
+  scale: 30,
+  maxPixels: 1e9
+});
+
+// The result is a Dictionary.  Print it.
+print('Buffer 2000 NDVI Mean: ', ndviMean_buffer2000);
+
+
+// Reduce the region for the Buffer 1500 site. The region parameter is the Feature geometry of the site.
+var ndviMean_buffer1500 = ndvi.reduceRegion({
+  reducer: ee.Reducer.mean(),
+  geometry: buffer1500,
+  scale: 30,
+  maxPixels: 1e9
+});
+
+// The result is a Dictionary.  Print it.
+print('Buffer 1500 NDVI Mean: ', ndviMean_buffer1500);
+
+// Reduce the region for the Buffer 1000 site. The region parameter is the Feature geometry of the site.
+var ndviMean_buffer1000 = ndvi.reduceRegion({
+  reducer: ee.Reducer.mean(),
+  geometry: buffer1000,
+  scale: 30,
+  maxPixels: 1e9
+});
+
+// The result is a Dictionary.  Print it.
+print('Buffer 1000 NDVI Mean: ', ndviMean_buffer1000);
+
+
+
+// Reduce the region for the Buffer 500 site. The region parameter is the Feature geometry of the site.
+var ndviMean_buffer500 = ndvi.reduceRegion({
+  reducer: ee.Reducer.mean(),
+  geometry: buffer500,
+  scale: 30,    
+  maxPixels: 1e9
+});
+
+// The result is a Dictionary.  Print it.
+print('Buffer 500 NDVI Mean: ', ndviMean_buffer500);
+
+
+
+
+//NDBI
+
+
+
+// Reduce the region for the Buffer 3000 site. The region parameter is the Feature geometry of the site.
+var ndbiMean_buffer3000 = ndbi.reduceRegion({
+  reducer: ee.Reducer.mean(),
+  geometry: buffer3000,
+  scale: 30,
+  maxPixels: 1e9
+});
+
+// The result is a Dictionary.  Print it.
+print('Buffer 3000 NDBI Mean: ', ndbiMean_buffer3000);
+
+
+
+
+// Reduce the region for the Buffer 2500 site. The region parameter is the Feature geometry of the site.
+var ndbiMean_buffer2500 = ndbi.reduceRegion({
+  reducer: ee.Reducer.mean(),
+  geometry: buffer2500,
+  scale: 30,
+  maxPixels: 1e9
+});
+
+// The result is a Dictionary.  Print it.
+print('Buffer 2500 NDBI Mean: ', ndbiMean_buffer2500);
+
+
+// Reduce the region for the Buffer 2000 site. The region parameter is the Feature geometry of the site.
+var ndbiMean_buffer2000 = ndbi.reduceRegion({
+  reducer: ee.Reducer.mean(),
+  geometry: buffer2000,
+  scale: 30,
+  maxPixels: 1e9
+});
+
+// The result is a Dictionary.  Print it.
+print('Buffer 2000 NDBI Mean: ', ndbiMean_buffer2000);
+
+
+// Reduce the region for the Buffer 1500 site. The region parameter is the Feature geometry of the site.
+var ndbiMean_buffer1500 = ndbi.reduceRegion({
+  reducer: ee.Reducer.mean(),
+  geometry: buffer1500,
+  scale: 30,
+  maxPixels: 1e9
+});
+
+// The result is a Dictionary.  Print it.
+print('Buffer 1500 NDBI Mean: ', ndbiMean_buffer1500);
+
+// Reduce the region for the Buffer 1000 site. The region parameter is the Feature geometry of the site.
+var ndbiMean_buffer1000 = ndbi.reduceRegion({
+  reducer: ee.Reducer.mean(),
+  geometry: buffer1000,
+  scale: 30,
+  maxPixels: 1e9
+});
+
+// The result is a Dictionary.  Print it.
+print('Buffer 1000 NDBI Mean: ', ndbiMean_buffer1000);
+
+
+
+
+// Reduce the region for the Buffer 500 site. The region parameter is the Feature geometry of the site.
+var ndbiMean_buffer500 = ndbi.reduceRegion({
+  reducer: ee.Reducer.mean(),
+  geometry: buffer500,
+  scale: 30,
+  maxPixels: 1e9
+});
+
+// The result is a Dictionary.  Print it.
+print('Buffer 500 NDBI Mean: ', ndbiMean_buffer500);
+
+
+
+
+
