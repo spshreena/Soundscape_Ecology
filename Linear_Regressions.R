@@ -26,7 +26,7 @@ BI_select<- BI$left_area
 filenames<- ACI$FILENAME
 #ADD AEI 
 #ADD NDSI, Biophony, Antrophony 
-
+#add missing points
 #create Acoustic dataframe
 df_sounds<- data.frame(filenames, ACI_select, ADI_select, NDSI_BMB_select, BI_select )
 
