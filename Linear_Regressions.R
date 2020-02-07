@@ -65,6 +65,8 @@ mean_WM <- sapply(dat_WM, mean)
 
 #data frame
 df_sound_mean<- data.frame(mean_BMB, mean_BP, mean_CC, mean_FR, mean_L, mean_PM, mean_RB, mean_W, mean_WM )
+#filp row column
+df_sound_mean_transpose <- as.data.frame(t(as.matrix(df_sound_mean)))
 #---------------------------------------------------------------------------------------------
 #Enviornmental Factors
 #DATA FRAME per buffer
