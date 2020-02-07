@@ -86,33 +86,16 @@ mean_WM <- sapply(dat_WM, mean)
 mean_EL <- sapply(dat_EL, mean)
 mean_LM <- sapply(dat_LM, mean)
 
-
 #data frame
 df_sounds_mean<- data.frame(mean_LM, mean_BMB,mean_BP, mean_PM, mean_RB, mean_CC, mean_EL, mean_WM, mean_W, mean_FR, mean_L )
-
 #filp row column
 df_sound_mean_transpose <- as.data.frame(t(as.matrix(df_sounds_mean)))
-
-
-
 #---------------------------------------------------------------------------------------------
 #Enviornmental Factors
 #DATA FRAME per buffer
 m500<- select(filter(df_evt, Buffer_Meter == 500),c(SITE, MEAN_NDVI, MEAN_NDBI))
-df_500all <-cbind(df_sound_mean_transpose, m500)
-write.table(df_500all, file = "500m_indices.csv", append = TRUE, quote = FALSE, sep = ",",
-            na = 'NA', dec = ".", row.names = T, col.names = NA)
-
 m1000<- select(filter(df_evt, Buffer_Meter == 1000),c(SITE, MEAN_NDVI, MEAN_NDBI))
-df_1000all <-cbind(df_sound_mean_transpose, m1000)
-write.table(df_1000all, file = "1000m_indices.csv", append = TRUE, quote = FALSE, sep = ",",
-            na = 'NA', dec = ".", row.names = T, col.names = NA)
-
 m1500<- select(filter(df_evt, Buffer_Meter == 1500),c(SITE, MEAN_NDVI, MEAN_NDBI))
-df_1500all <-cbind(df_sound_mean_transpose, m1500)
-write.table(df_1500all, file = "1500m_indices.csv", append = TRUE, quote = FALSE, sep = ",",
-            na = 'NA', dec = ".", row.names = T, col.names = NA)
-
 m2000<- select(filter(df_evt, Buffer_Meter == 2000),c(SITE, MEAN_NDVI, MEAN_NDBI))
 m2500<- select(filter(df_evt, Buffer_Meter == 2500),c(SITE, MEAN_NDVI, MEAN_NDBI))
 m3000<- select(filter(df_evt, Buffer_Meter == 3000),c(SITE, MEAN_NDVI, MEAN_NDBI))
@@ -121,6 +104,4 @@ df_all <-cbind(df_sound_mean_transpose, m500, m1000, m1500, m2000, m2500, m3000)
 write.table(df_all, file = "all_indices_updated.csv", append = TRUE, quote = FALSE, sep = ",",
             na = 'NA', dec = ".", row.names = T, col.names = NA)
 write.csv(df_all, file = "ALL_INDICES.csv")
-
-
 #I fixed the rows and columns CSV in EXCEL--> in common folder
