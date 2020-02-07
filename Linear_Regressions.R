@@ -73,7 +73,6 @@ dat_LM <- subset(df_sounds, grepl(LM, filenames))
 BMB<- 'BMB'
 dat_BMB <- subset(df_sounds, grepl(BMB, filenames))
 
-#NEED TO FIX dat_EL it has double values************************************************
 #mean acoustic index per site
 mean_BMB <-sapply(dat_BMB, mean)
 mean_BP <- sapply(dat_BP, mean)
