@@ -1,1 +1,459 @@
-aaa
+install.packages("landscapemetrics")
+install.packages("landscapetools")
+install.packages("mapview")
+install.packages("tmap")
+
+
+library(geospaar)
+library(landscapemetrics)
+library(landscapetools)
+library(rasterVis)
+library(RColorBrewer)
+library(mapview) # for interactive maps
+library(tmap)    # for static and interactive maps
+library(leaflet) # for interactive maps
+
+
+#display.brewer.all()
+#------------------------------------------------------------------------------------------
+#Import the data
+
+
+##Import Full Raster Shape File 
+setwd("D:/RA-withSangermano/SpatialData/NOAA-CCAP/")
+my_raster = raster("D:/RA-withSangermano/SpatialData/NOAA-CCAP/MA_Wor_CCAP2016.tif")
+my_raster
+st_crs(my_raster)
+
+##import Raster isolated to AOI, in State Plane
+
+my_aoi_raster = raster("D:/RA-withSangermano/SpatialData/NOAA-CCAP/Extract_img2_1.tif")
+my_aoi_raster
+st_crs(my_aoi_raster)
+
+
+##import Raster isolated to AOI, in Albers Equal Area
+
+my_aoi_raster_albers = raster("D:/RA-withSangermano/SpatialData/NOAA-CCAP/aoi_massclass_2.tif")
+my_aoi_raster_albers
+st_crs(my_aoi_raster_albers)
+
+
+
+
+##Convert raster to DF for plotting
+my_aoi_raster_DF <- as.data.frame(my_aoi_raster, xy = TRUE)
+my_aoi_raster_DF
+
+setwd("D:/RA-withSangermano/SpatialData/CENSUS2010TIGERROADS_SHP/")
+##import Shapefile for the sites of interest
+sample_points_f <- st_read("sample_sites_projected.shp")
+
+sample_points_f
+
+
+##Examine geometry list-column 
+st_geometry(sample_points_f)
+
+##Examine attributes of sample points
+attributes(sample_points_f)
+##import shapefile for the sites of interest in albers projection
+
+sample_points_Albers <- st_read("sample_sites_projected_1.shp")
+
+sample_points_Albers
+#Creating test points with centroids described
+test_points <- st_centroid(sample_points_f)
+test_points
+
+# Import AOI shapefile containing site
+AOI <- st_read("AOI.shp")
+AOI
+
+
+#Examines coordinate system of the raster 
+st_crs(my_raster)
+inMemory(my_raster)
+
+#Examines coordinate system of the aoimassclass raster 
+st_crs(my_aoi_raster)
+inMemory(my_aoi_raster)
+
+#Examines coordinate system of the sample points 
+st_crs(sample_points_f)
+inMemory(sample_points_f)
+
+
+#Examines coordinate system of the sample points projected to NAD 1983 Albers 
+st_crs(sample_points_Albers)
+inMemory(sample_points_Albers)
+
+
+# #Assigning coordinate data to sample_points but does not transform the data
+# st_crs(sample_points_f) <- st_crs(my_aoi_raster)
+
+
+#Change crs to be of same system for Sample_points_f and my_aoi_raster
+# 
+# sample_points_f <- st_transform(x = sample_points_f, crs = st_crs(my_raster))
+# st_crs(sample_points_f)
+# 
+# my_aoi_raster <- st_transform(x = my_aoi_raster, crs = st_crs(my_raster))
+# st_crs(my_aoi_raster)
+# 
+# my_aoi_raster_proj <- projectRaster(my_aoi_raster, crs = "+proj=utm +zone=18 +datum=WGS84 +units=m +no_defs")
+
+#------------------------------------------------------------------------------------------
+###Example plot of data
+plot(sample_points_f %>% st_geometry(), col = "red")
+par(mar = c(0, 0, 1, 0) +  + .1)
+plot(my_aoi_raster_ratted, main = "Massachussets Classification Map", axes = FALSE, box = FALSE, nr = 4)
+plot(sample_points_f, col = "blue", add=TRUE)
+
+
+# ggplot() +
+#   geom_raster(data = my_aoi_raster$aoi_massclass,
+#               aes(x = x, y = y,
+#                   fill = my_aoi_raster$aoi_massclass)) +
+#   scale_fill_gradientn(name = "Elevation", colors = terrain.colors(10)) + 
+#   coord_quickmap()
+
+
+head(sample_points_f, n = 4) 
+sample_points_f
+my_aoi_raster
+
+
+#Creating a polygon layer for the raster.  same parameters as the AOI file
+
+pol <- st_polygon(list(cbind(x = c(42.02124129930544, 42.69707031707116, 42.69707031707116, 42.69707031707116, 42.02124129930544), 
+                             y = c(-71.53416964017146, -71.53416964017146, -72.30321260892146, -72.30321260892146, -71.53416964017146))))
+
+#------------------------------------------------------------------------------------------
+
+
+#Calculating metrics 
+
+
+#Sources: 
+#https://www.r-bloggers.com/how-to-calculate-landscape-metrics-for-local-landscapes/
+#https://r-spatialecology.github.io/landscapemetrics/reference/list_lsm.html
+#https://r-spatialecology.github.io/landscapemetrics/
+#https://r-spatialecology.github.io/landscapemetrics/articles/articles/guide_sample_lsm.html#extract-landscape-metrics-at-sample-points
+#https://r-spatialecology.github.io/landscapemetrics/reference/sample_lsm.html#details
+
+
+
+
+##> Calculate percentage of landscape area and edge metric class lsm_c_pland 
+my_metric_pland = sample_lsm(my_aoi_raster, sample_points_f, shape = "circle", size = 500, level = "class", what = "lsm_c_pland")
+my_metric_pland
+
+#Create new field called 'SiteName' using the site names from sample_points_f$Site
+
+my_metric_pland <- my_metric_pland %>% 
+  mutate(
+    SiteName = case_when(
+      grepl("1", plot_id) ~ "Leadmine Mountain",
+      grepl("2", plot_id) ~ "Braod Meadow Brook", 
+      grepl("3", plot_id) ~ "Burncoat Pond", 
+      grepl("4", plot_id) ~ "Pierpoint Meadow",
+      grepl("5", plot_id) ~ "Rutland Brook", 
+      grepl("6", plot_id) ~ "Cooks Canyon", 
+      grepl("7", plot_id) ~ "Eagle Lake",
+      grepl("8", plot_id) ~ "Wachusett Meadow", 
+      grepl("9", plot_id) ~ "Lake Wampanoag", 
+      grepl("10", plot_id) ~ "Flat Rocks",
+      grepl("11", plot_id) ~ "Lincoln Woods", 
+    )
+  ) %>% dplyr::select(layer, level, class, id, metric, value, SiteName, plot_id, percentage_inside)
+
+
+
+
+#Calculate Number of patches of class (Aggregation metric)
+
+my_metric_lsm_c_np = sample_lsm(my_aoi_raster, sample_points_f, shape = "circle", size = 500, level = "class", what = "lsm_c_np")
+my_metric_lsm_c_np
+
+#Create new field called 'SiteName' using the site names from sample_points_f$Site
+
+my_metric_lsm_c_np <- my_metric_lsm_c_np %>% 
+  mutate(
+    SiteName = case_when(
+      grepl("1", plot_id) ~ "Leadmine Mountain",
+      grepl("2", plot_id) ~ "Braod Meadow Brook", 
+      grepl("3", plot_id) ~ "Burncoat Pond", 
+      grepl("4", plot_id) ~ "Pierpoint Meadow",
+      grepl("5", plot_id) ~ "Rutland Brook", 
+      grepl("6", plot_id) ~ "Cooks Canyon", 
+      grepl("7", plot_id) ~ "Eagle Lake",
+      grepl("8", plot_id) ~ "Wachusett Meadow", 
+      grepl("9", plot_id) ~ "Lake Wampanoag", 
+      grepl("10", plot_id) ~ "Flat Rocks",
+      grepl("11", plot_id) ~ "Lincoln Woods", 
+    )
+  ) %>% dplyr::select(layer, level, class, id, metric, value, SiteName, plot_id, percentage_inside)
+
+#Check that the right amount of names appear = 11
+length(unique(my_metric_pland_All$SiteName))
+
+#Create buffers for the points for visualization purposes and plot them against the sample points 
+buffs <- construct_buffer(coords = samp_matrix, shape = "circle", size = 3000)
+
+par(mar = c(0, 0, 1, 0) + .1)
+plot(my_aoi_raster, main = "Massachussets Classification Map", axes = FALSE, box = FALSE, nr = 4)
+plot(buffs, col = "blue", add=TRUE)
+
+
+
+
+
+# Creating sample buffers using scale_sample against sample_points_f
+# https://r-spatialecology.github.io/landscapemetrics/reference/scale_sample.html
+
+##> Calculate percentage of landscape area and edge metric class lsm_c_pland for all BUFFERS 
+
+my_metric_pland_All <- scale_sample(landscape = my_aoi_raster, y = samp_matrix, shape = "circle", size = 500, max_size = 3000, level = "class", what = "lsm_c_pland", verbose = TRUE, progress = TRUE)
+
+my_metric_pland_All
+
+#Create new field called 'ClassName' using the class names from aoi_massclass
+#Used anchors. ^ Asserts that we are at the start. $ Asserts that we are at the end.
+
+my_metric_pland_All <- my_metric_pland_All %>% 
+  mutate(
+    ClassName = case_when(
+      grepl("^2$", class) ~ "Developed, High Intensity",
+      grepl("^3$", class) ~ "Developed, Medium Intensity",
+      grepl("^4$", class) ~ "Developed, Low Intensity",
+      grepl("^5$", class) ~ "Developed, Open Space",
+      grepl("^6$", class) ~ "Cultivated Crops",
+      grepl("^7$", class) ~ "Pasture/Hay",
+      grepl("^8$", class) ~ "Grassland/Herbaceous",
+      grepl("^9$", class) ~ "Deciduous Forest",
+      grepl("^10$", class) ~ "Evergreen Forest",
+      grepl("^11$", class) ~ "Mixed Forest",
+      grepl("^12$", class) ~ "Scrub/Shrub",
+      grepl("^13$", class) ~ "Palustrine Forested Wetland",
+      grepl("^14$", class) ~ "Palustrine Scrub/Shrub Wetland",
+      grepl("^15$", class) ~ "Palustrine Emergent Wetland",
+      grepl("^19$", class) ~ "Unconsolidated Shore",
+      grepl("^20", class) ~ "Bare Land",
+      grepl("^21", class) ~ "Open Water",
+      grepl("^22", class) ~ "Palustrine Aquatic Bed",
+    )
+  ) %>% dplyr::select(layer, level, ClassName, class, metric, value, size, plot_id, percentage_inside)
+
+#Check that the right amount of classes appear = 18
+length(unique(my_metric_pland_All$ClassName))
+ClassNames <- list(unique(my_metric_pland_All$ClassName))
+ClassNames[[1]][15] <- "Unconsolidated Shore" 
+ClassNames[[1]][16] <- "Bare Land" 
+ClassNames[[1]][17] <- "Open Water"                    
+ClassNames[[1]][18] <- "Palustrine Aquatic Bed" 
+ClassNames
+# mutate(ClassName = ifelse(class == 2, "Developed, High Intensity", class),
+#        country = ifelse(class == 3, "Zambia", "ZMB", country)) %>% 
+#   dplyr::select(layer, level, ClassName, class, metric, value, size, plot_id, percentage_inside)
+
+
+
+
+#Create new field called 'SiteName' using the site names from sample_points_f$Site, and drop the id field with NA values
+#Used anchors. ^ Asserts that we are at the start. $ Asserts that we are at the end.
+
+my_metric_pland_All <- my_metric_pland_All %>% 
+  mutate(
+    SiteName = case_when(
+      grepl("^1$", plot_id) ~ "Leadmine Mountain",
+      grepl("^2$", plot_id) ~ "Braod Meadow Brook", 
+      grepl("^3$", plot_id) ~ "Burncoat Pond", 
+      grepl("^4$", plot_id) ~ "Pierpoint Meadow",
+      grepl("^5$", plot_id) ~ "Rutland Brook", 
+      grepl("^6$", plot_id) ~ "Cooks Canyon", 
+      grepl("^7$", plot_id) ~ "Eagle Lake",
+      grepl("^8$", plot_id) ~ "Wachusett Meadow", 
+      grepl("^9$", plot_id) ~ "Lake Wampanoag", 
+      grepl("^10$", plot_id) ~ "Flat Rocks",
+      grepl("^11$", plot_id) ~ "Lincoln Woods", 
+    )
+  ) %>% dplyr::select(layer, level, ClassName, class, metric, value, SiteName, size, plot_id, percentage_inside)
+
+
+
+
+write.csv(my_metric_pland_All, file = "Landscape_Metrics.csv")
+
+
+
+
+
+#List all available landscape metrics depending on the provided filter arguments.
+#If an argument is not provided, automatically all possibilities are selected.
+
+
+metric3 <- scale_sample(landscape = my_aoi_raster, y = samp_matrix, shape = "circle", size = 500, max_size = 3000, verbose = TRUE, progress = TRUE)
+metric3
+
+#Drop rows with NA in the values field
+
+metric3 %>% drop_na(value)
+
+# The output data frame has two rows for each grid cell; therefore, 
+# if we want to connect the result with a spatial object, we need to reformat it.
+# It can be done with the pivot_wider() function from the tidyr package.
+
+library(tidyr)
+my_metric3 = pivot_wider(metric3, names_from = metric, values_from = value)
+my_metric3
+
+
+
+
+
+# scale_sample(landscape = augusta_nlcd, y = my_points,
+#              size = 500, max_size = 5000, what = c("lsm_l_ent", "lsm_l_mutinf"))
+
+
+
+
+
+matrix1 <-  sample_points_f[,5]
+str(matrix1)
+
+sample_points_online <- matrix(c(10, 5, 25, 15, 5, 25), ncol = 2, byrow = TRUE)
+
+sampLat <- sample_points_f$Lat
+sampLong <- sample_points_f$Long
+
+sampboth <-  matrix(c(sample_points_f$Lat,sample_points_f$Long), ncol = 2, byrow = FALSE)
+
+#Create matrix of points from geometry field
+samp_matrix <- unlist(matrix(sample_points_f$geometry, ncol = 2))
+samp_matrix <- matrix(data = samp_matrix, ncol = 2, byrow = TRUE)
+
+
+
+sample_lsm(my_aoi_raster, y = sample_points_f, size = 500, level = "landscape", type = "diversity metric", classes_max = 19, verbose = FALSE)
+
+
+# farmers <- st_read(dir(tempdir(), pattern = "farmers.shp", full.names = TRUE))
+# 
+# sample_sites <- st_read(dir(CENSUS2010TIGERROADS_SHP/, pattern = "sample_sites_projected.shp", full.names = TRUE))
+# 
+# 
+# sample_sites <-  system.file("CENSUS2010TIGERROADS_SHP/sample_sites_projected.shp", package = "geospaar")
+# sample_sites
+# site_vector_data <- st_read(dsn = sample_sites)
+
+
+
+# The input file, however, should fulfill two requirements: (1) contain only
+# integer values that represent categories, and (2) be in a projected coordinate
+# reference system.
+# You can check if your file meets the requirements using the check_landscape()
+# function, and learn more about coordinate reference systems in the Geocomputation with R book.
+
+#------------------------------------------------------------------------------------------
+
+#Plotting the raster 
+
+#A raster that contains categorical data can be defined with the ratify function.
+
+my_aoi_raster_ratted <- ratify(my_aoi_raster)
+
+my_aoi_raster_ratted[[1]] <- ClassNames
+
+ClassNames
+
+#https://oscarperpinan.github.io/rastervis/
+# #The levels are stored in the “Raster Attribute Table” (RAT) that can be
+# manipulated with the levels function. Creates dataframe for rats with categorical data
+rat <- levels(my_aoi_raster_ratted)[[1]]
+rat$landcover <- unlist(ClassNames)
+levels(my_aoi_raster_ratted) <- rat
+
+levelplot(my_aoi_raster_ratted, 
+          border = "transparent",  
+          scales=list(draw=FALSE), 
+          col.regions = terrain.colors(18), 
+          margin=  FALSE,
+          main=list('Massachussets Classification Map- Classes Sorted 22- 2', col='Black'))
+          # xlab= list('This is the X-Axis', fontface = 'bold'),
+          # ylab=list('Y-Axis', rot=30, fontface='bold', panel = panel.levelplot.raster))
+
+mapView(my_aoi_raster_ratted, label = TRUE,col.regions = terrain.colors(18))
+
+tm_shape(my_aoi_raster_ratted)
+my_aoi_raster_ratted + tm_basemap(server = "OpenTopoMap")
+
+
+#Using Tmap to plot the map
+tm_shape(my_aoi_raster_ratted) + tm_raster(alpha = 1) + tmap_options(legend.text.size  = .5, max.raster = c(plot = 11826375, view = 11826375)) +
+tmap_mode("view") + legend_title = expression("Area (km"^2*")")
+
+
+
+#tmap_tip() for tips!!!
+
+
+map_mass_cover = tm_shape(my_aoi_raster_ratted) + tm_raster(alpha = 1) + #tmap_mode("view") + tmap_options(legend.text.size  = .2, max.raster = c(plot = 11826375, view = 11826375)) +
+tm_layout(title = "Massachussets Classification Map", legend.title.size = 4, legend.text.size = 0.2)  + tm_legend(outside=TRUE)
+map_mass_cover + tm_view(alpha = 1, view.legend.position = c("right","bottom"))
+#There are 5 R base functions that can be used to generate a vector of n 
+#contiguous colors: rainbow(n), heat.colors(n), 
+#terrain.colors(n), topo.colors(n), and cm.colors(n).
+
+
+# Custom palette
+my_palette <- brewer.pal(n = 18, name = "Dark2")
+my_palette
+#> [1] "#1B9E77" "#D95F02" "#7570B3"
+
+# Plot
+plot_noaxes(my_aoi_raster_ratted, legend = FALSE, mar = c(0, 0, 1, 0))
+legend(x = "bottomright", legend = levels(my_aoi_raster_ratted)[[1]], pch = 15, pt.cex = 3, bty = "n")
+
+
+
+#Plot data as is
+
+plot(sample_points_f %>% st_geometry(), col = "red")
+par(mar = c(0, 0, 1, 0) +  + .1)
+plot(my_aoi_raster_ratted, main = "Massachussets Classification Map", axes = FALSE, box = FALSE, nr = 4)
+plot(sample_points_f, col = "blue", add=TRUE)
+
+
+
+
+
+
+
+
+#------------------------------------------------------------------------------------------
+
+
+#LandScape Calculations
+
+# general structure
+lsm_()
+
+# Patch level
+## lsm_p_"metric"
+lsm_p_enn()
+
+# Class level
+## lsm_c_"metric"
+lsm_c_enn()
+
+# Landscape level
+## lsm_p_"metric"
+lsm_l_enn()
+
+
+
+# calculate for example the Euclidean nearest-neighbor distance on patch level
+lsm_p_enn(my_aoi_raster)
+
+
