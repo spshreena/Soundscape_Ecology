@@ -1,4 +1,9 @@
+//The goal of this code is to extract NDVI and NDBI at 3000m extent to be processed in R and ArcPro
+
+//Load locations of sample sites and create AOI
 var sample = ee.FeatureCollection("users/shreenapyakurel/Sample_Sites"),
+
+//create a bounding box that encompasses the location   
     AOI = 
     /* color: #ffc82d */
     /* shown: false */
@@ -12,7 +17,8 @@ var sample = ee.FeatureCollection("users/shreenapyakurel/Sample_Sites"),
           [-72.30321260892146, 42.02124129930544],
           [-71.53416964017146, 42.02124129930544],
           [-71.53416964017146, 42.69707031707116]]], null, false);
-
+//-----------------------------------------------------------------------------------------------------------------------
+//Goal: Filter image to get a cloud free composite and display true and false color composite images
 
 // Function to mask clouds using the Sentinel-2 QA band.
 function maskS2clouds(image) {
@@ -32,7 +38,7 @@ function maskS2clouds(image) {
       .copyProperties(image, ["system:time_start"])
 }
 
-// Load Sentinel-2 surface  reflectance data.
+// Load Sentinel-2 surface  reflectance data. Images are from may 2019 to August 2019 reflecting when sound recorders are placed
 var collection = ee.ImageCollection('COPERNICUS/S2_SR')
     .filterDate('2019-05-01', '2019-08-31')
     // Pre-filter to get less cloudy granules.
@@ -40,22 +46,21 @@ var collection = ee.ImageCollection('COPERNICUS/S2_SR')
     .map(maskS2clouds)
     .filterBounds(AOI)
 
+//Filter images that meet both clear onditions and fall within the range and take the median value 
 var composite = collection.median()
 
 //divide by 1000 to fix exactly in AOI
 var image = composite.clip(AOI).divide(1000);
 
-var properties = image.propertyNames();
-print('Metadata properties: ', properties); // ee.List of metadata properties
-print (image);
 
 //clip image to a bounding box with all points 
 var imgclip = image.clip(AOI)
+
+//True color composite and traditional False color composite, to see on map change false to true
 Map.addLayer(composite, {bands: ['B4', 'B3', 'B2'], min: 0, max: 0.3}, 'RGB', false)
 Map.addLayer(composite, {bands: ['B8', 'B4', 'B3'], min: 0, max: 0.3}, 'fcc', false)
 
-//Add in sample points--need to figure how to distuinguish each--
-
+//Add in sample points to map
 Map.addLayer(sample, {color: 'yellow'}, 'sample');
 
 // 3000m buffer all points 
@@ -63,6 +68,8 @@ var buffer3000 = sample.map(function(f) {
   return f.buffer(3000, 1); // Note that the errorMargin is set to 100.
 });
 Map.addLayer(buffer3000, {color: 'green'}, '3000buff', true);
+//----------------------------------------------------------------------------------------------------------------------------------
+//Goal: calculate NDVI and NDBI at different buffers used in proccessing
 
 // NDVI of site
 var ndvi = imgclip.normalizedDifference(['B8', 'B4']);
@@ -88,9 +95,9 @@ var ndbiParams = {min: -1, max: 0,  palette: ['blue', 'purple', 'grey'
 };
 Map.addLayer(ndbi, ndbiParams, 'NDBI image', false);
 
-print(ndbi, "ndbi")
 
-//clip ndvi and ndbi to sample sites (buffer of 3000m)
+
+//clip ndvi and ndbi, fcc, and tcc to sample sites/buffers 
 
 var fcc_clip = composite.clip(buff3000)
 Map.addLayer(fcc_clip, {bands: ['B8', 'B4', 'B3'], min: 0, max: 0.3}, 'fcc_clip', true)
@@ -104,209 +111,59 @@ Map.addLayer(ndbiimage, ndbiParams, 'NDBI clip', true);
 var tcc_clip = composite.clip(buff3000)
 Map.addLayer(tcc_clip, {bands: ['B4', 'B3', 'B2'], min: 0, max: 0.3}, 'clip_RGB', true)
 
-// 2500m buffer all points 
-var buffer2500 = sample.map(function(f) {
-  return f.buffer(2500, 1); // Note that the errorMargin is set to 100.
-});
-Map.addLayer(buffer2500, {color: 'green'}, '2500buff', true);
 
-// 2000m buffer all points 
-var buffer2000 = sample.map(function(f) {
-  return f.buffer(2000, 1); // Note that the errorMargin is set to 100.
-});
-Map.addLayer(buffer2000, {color: 'green'}, '2000buff', true);
-
-// 1500m buffer all points 
-var buffer1500 = sample.map(function(f) {
-  return f.buffer(1500, 1); // Note that the errorMargin is set to 100.
-});
-Map.addLayer(buffer1500, {color: 'green'}, '1500buff', true);
-
-// 1000m buffer all points 
-var buffer1000 = sample.map(function(f) {
-  return f.buffer(1000, 1); // Note that the errorMargin is set to 100.
-});
-Map.addLayer(buffer1000, {color: 'green'}, '1000buff', true);
-
-// 500m buffer all points 
-var buffer500 = sample.map(function(f) {
-  return f.buffer(500, 1); // Note that the errorMargin is set to 100.
-});
-Map.addLayer(buffer500, {color: 'green'}, '500buff', true);
-
-
-
-//MEAN VALUE CALCULATIONS FOR INDICES
-
-//NDVI
-
-
-
-
-// Reduce the region for the Laughing Brook Site. The region parameter is the Feature geometry of the site.
-var ndviMean_site = ndvi.reduceRegion({
-  reducer: ee.Reducer.mean(),
-  geometry: laughingbrook,
+//-----------------------------------------------------------------------------------------------------------------------------------
+//export images as geotiffs to be used in ArcPro/R
+//export images as geotiffs to be used in ArcPro/R
+// Export a cloud-optimized GeoTIFF.
+Export.image.toDrive({
+  image: collection,
+  description: 'imageToCOGeoTiffExample',
   scale: 30,
-  maxPixels: 1e9
+  region: AOI,
+  fileFormat: 'GeoTIFF',
+  formatOptions: {
+    cloudOptimized: true
+  }
 });
 
-// The result is a Dictionary.  Print it.
-print('Laughing Brook Site NDVI Mean: ',ndviMean_site);
-
-// Reduce the region for the Buffer 3000 site. The region parameter is the Feature geometry of the site.
-var ndviMean_buffer3000 = ndvi.reduceRegion({
-  reducer: ee.Reducer.mean(),
-  geometry: buffer3000,
+Export.image.toDrive({
+  image: ndviimage,
+  description: 'NDVI_3000m',
   scale: 30,
-  maxPixels: 1e9
+  region: AOI,
+  fileFormat: 'GeoTIFF',
+  formatOptions: {
+    cloudOptimized: true
+  }
 });
 
-// The result is a Dictionary.  Print it.
-print('Buffer 3000 NDVI Mean: ', ndviMean_buffer3000);
-
-
-
-
-// Reduce the region for the Buffer 2500 site. The region parameter is the Feature geometry of the site.
-var ndviMean_buffer2500 = ndvi.reduceRegion({
-  reducer: ee.Reducer.mean(),
-  geometry: buffer2500,
+Export.image.toDrive({
+  image: ndbiimage,
+  description: 'NDBI_3000m',
   scale: 30,
-  maxPixels: 1e9
+  region: AOI,
+  fileFormat: 'GeoTIFF',
+  formatOptions: {
+    cloudOptimized: true
+  }
 });
 
-// The result is a Dictionary.  Print it.
-print('Buffer 2500 NDVI Mean: ', ndviMean_buffer2500);
-
-
-// Reduce the region for the Buffer 2000 site. The region parameter is the Feature geometry of the site.
-var ndviMean_buffer2000 = ndvi.reduceRegion({
-  reducer: ee.Reducer.mean(),
-  geometry: buffer2000,
-  scale: 30,
-  maxPixels: 1e9
-});
-
-// The result is a Dictionary.  Print it.
-print('Buffer 2000 NDVI Mean: ', ndviMean_buffer2000);
-
-
-// Reduce the region for the Buffer 1500 site. The region parameter is the Feature geometry of the site.
-var ndviMean_buffer1500 = ndvi.reduceRegion({
-  reducer: ee.Reducer.mean(),
-  geometry: buffer1500,
-  scale: 30,
-  maxPixels: 1e9
-});
-
-// The result is a Dictionary.  Print it.
-print('Buffer 1500 NDVI Mean: ', ndviMean_buffer1500);
-
-// Reduce the region for the Buffer 1000 site. The region parameter is the Feature geometry of the site.
-var ndviMean_buffer1000 = ndvi.reduceRegion({
-  reducer: ee.Reducer.mean(),
-  geometry: buffer1000,
-  scale: 30,
-  maxPixels: 1e9
-});
-
-// The result is a Dictionary.  Print it.
-print('Buffer 1000 NDVI Mean: ', ndviMean_buffer1000);
-
-
-
-// Reduce the region for the Buffer 500 site. The region parameter is the Feature geometry of the site.
-var ndviMean_buffer500 = ndvi.reduceRegion({
-  reducer: ee.Reducer.mean(),
-  geometry: buffer500,
-  scale: 30,    
-  maxPixels: 1e9
-});
-
-// The result is a Dictionary.  Print it.
-print('Buffer 500 NDVI Mean: ', ndviMean_buffer500);
 
 
 
 
-//NDBI
-
-
-
-// Reduce the region for the Buffer 3000 site. The region parameter is the Feature geometry of the site.
-var ndbiMean_buffer3000 = ndbi.reduceRegion({
-  reducer: ee.Reducer.mean(),
-  geometry: buffer3000,
-  scale: 30,
-  maxPixels: 1e9
-});
-
-// The result is a Dictionary.  Print it.
-print('Buffer 3000 NDBI Mean: ', ndbiMean_buffer3000);
 
 
 
 
-// Reduce the region for the Buffer 2500 site. The region parameter is the Feature geometry of the site.
-var ndbiMean_buffer2500 = ndbi.reduceRegion({
-  reducer: ee.Reducer.mean(),
-  geometry: buffer2500,
-  scale: 30,
-  maxPixels: 1e9
-});
-
-// The result is a Dictionary.  Print it.
-print('Buffer 2500 NDBI Mean: ', ndbiMean_buffer2500);
-
-
-// Reduce the region for the Buffer 2000 site. The region parameter is the Feature geometry of the site.
-var ndbiMean_buffer2000 = ndbi.reduceRegion({
-  reducer: ee.Reducer.mean(),
-  geometry: buffer2000,
-  scale: 30,
-  maxPixels: 1e9
-});
-
-// The result is a Dictionary.  Print it.
-print('Buffer 2000 NDBI Mean: ', ndbiMean_buffer2000);
-
-
-// Reduce the region for the Buffer 1500 site. The region parameter is the Feature geometry of the site.
-var ndbiMean_buffer1500 = ndbi.reduceRegion({
-  reducer: ee.Reducer.mean(),
-  geometry: buffer1500,
-  scale: 30,
-  maxPixels: 1e9
-});
-
-// The result is a Dictionary.  Print it.
-print('Buffer 1500 NDBI Mean: ', ndbiMean_buffer1500);
-
-// Reduce the region for the Buffer 1000 site. The region parameter is the Feature geometry of the site.
-var ndbiMean_buffer1000 = ndbi.reduceRegion({
-  reducer: ee.Reducer.mean(),
-  geometry: buffer1000,
-  scale: 30,
-  maxPixels: 1e9
-});
-
-// The result is a Dictionary.  Print it.
-print('Buffer 1000 NDBI Mean: ', ndbiMean_buffer1000);
 
 
 
 
-// Reduce the region for the Buffer 500 site. The region parameter is the Feature geometry of the site.
-var ndbiMean_buffer500 = ndbi.reduceRegion({
-  reducer: ee.Reducer.mean(),
-  geometry: buffer500,
-  scale: 30,
-  maxPixels: 1e9
-});
 
-// The result is a Dictionary.  Print it.
-print('Buffer 500 NDBI Mean: ', ndbiMean_buffer500);
+
+
 
 
 
