@@ -1,0 +1,64 @@
+
+#create a soundwave video with audio
+#Will not work on Windows, need to download and install ffmpeg which is available on Apple or Linux
+#audio did not get added but used IMovie to add audio  
+
+require("warbleR")
+
+setwd("~/Desktop/spect")
+wav1 <- readWave("selected_wave2.wav", from = 0, to = 30, units = "seconds")
+
+tlimsize <- 1.5
+
+
+# frames per second
+fps <- 50
+
+#margin
+marg <- tlimsize / 2
+
+#add silence
+wav <-pastew(wave2 = silence(duration = marg, samp.rate = wav1@samp.rate,
+                             xunit = "time"), wave1 = wav1, f = wav@samp.rate,
+             output = "Wave")
+
+wav <-pastew(wave1 = silence(duration = marg, samp.rate = wav@samp.rate,
+                             xunit = "time"), wave2 = wav, f = wav@samp.rate,
+             output = "Wave")
+
+tiff("fee%04d.tiff",res = 120, width = 1100, height = 700)
+
+x <- 0
+
+#loop to create image files
+repeat{
+  
+  tlim <- c(x, x + tlimsize)
+  
+  spectro(wave = wav, f = wav@samp.rate, wl = 300, ovlp = 90,
+          flim = c(2, 10.5), tlim = tlim, scale = F, grid = F,
+          palette = gray.colors,  norm = F, dBref = 2*10e-5,
+          osc = T, colgrid="white", colwave="chocolate2",
+          colaxis="white", collab="white", colbg="black")
+  
+  abline(v = tlim[1]+marg, lty = 2, col = "skyblue", lwd = 2)
+  
+  x <- x + 1/fps
+  
+  # stop when the end is reached
+  if(x >= (length(wav@left)/wav@samp.rate) - tlimsize) break
+  
+}
+
+dev.off()
+
+system("ffmpeg -framerate 50 -i fee%4d.tiff -c:v libx264 -profile:v high -crf 2 -pix_fmt yuv420p spectro_movie.mp4")
+
+
+# save audio file
+savewav(wave = wav1,filename =  "audio1.wav")
+
+#Add audio
+system("ffmpeg -i spectro_movie.mp4 -i audio1.wav -vcodec libx264 -acodec libmp3lame -shortest spectro_movie_audio.mp4")
+
+       
