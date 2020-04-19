@@ -8,3 +8,9 @@ Studying anthropogenic impacts on biodiversity is essential to understanding the
 ![NDVI](https://user-images.githubusercontent.com/54719859/79689136-d443d100-8220-11ea-9c00-3dced1aa1273.png)
 # NDBI
 ![NDBI](https://user-images.githubusercontent.com/54719859/79689032-42d45f00-8220-11ea-97c0-6928412f4259.png)
+
+
+#Results
+##
+![image](https://user-images.githubusercontent.com/54719859/79689215-4f0cec00-8221-11ea-824b-627da5d16a76.png)
+![image](https://user-images.githubusercontent.com/54719859/79689244-71066e80-8221-11ea-83b3-92d5f171c06c.png)
