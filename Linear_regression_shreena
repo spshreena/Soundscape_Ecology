@@ -4,7 +4,7 @@ library(dplyr)
 library(nlme)
 
 setwd("D:/RA-withSangermano/CSV")
-#renamed all data as DF_Fulltable.csv
+#renamed all data as DF_Fulltable.csv in the folder and SP.csv is also in commons
 df<- read.csv("SP.csv")
 
 #ACI
