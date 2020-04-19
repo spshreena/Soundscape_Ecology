@@ -1,4 +1,4 @@
-#calculate linear regressions between sound indices and evnt factors
+#calculate linear regressions between sound indices and evnt factors, includes roads
 library(ggplot2)
 library(dplyr)
 library(nlme)
