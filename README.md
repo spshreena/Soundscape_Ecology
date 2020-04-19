@@ -4,7 +4,7 @@ Studying anthropogenic impacts on biodiversity is essential to understanding the
 
 ## Environmental Factors
 
-# NDVI 
-
+## NDVI 
+![NDVI](https://user-images.githubusercontent.com/54719859/79689136-d443d100-8220-11ea-9c00-3dced1aa1273.png)
 # NDBI
 ![NDBI](https://user-images.githubusercontent.com/54719859/79689032-42d45f00-8220-11ea-97c0-6928412f4259.png)
