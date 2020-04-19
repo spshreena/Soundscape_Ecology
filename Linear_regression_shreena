@@ -1,0 +1,248 @@
+#calculate linear regressions between sound indices and evnt factors
+library(ggplot2)
+library(dplyr)
+library(nlme)
+
+setwd("D:/RA-withSangermano/CSV")
+#renamed all data as DF_Fulltable.csv
+df<- read.csv("SP.csv")
+
+#ACI
+lm_ACI_NDVI<- lmList(ACI_select ~ MEAN_NDVI | Buffer, data=df)
+ACI_NDVI_lm<- summary(lm_ACI_NDVI)$r.squared 
+
+lm_ACI_NDBI<- lmList(ACI_select ~ MEAN_NDBI | Buffer, data=df)
+ACI_NDBI_lm<- summary(lm_ACI_NDBI)$r.squared
+
+#--------------------------------------------------------------------------------------------------------
+#BI
+lm_BI_NDVI<- lmList(BI_select ~ MEAN_NDVI | Buffer, data=df)
+BI_NDVI_lm<-summary(lm_BI_NDVI)$r.squared 
+
+lm_BI_NDBI<- lmList(BI_select ~ MEAN_NDBI | Buffer, data=df)
+BI_NDBI_lm<- summary(lm_BI_NDBI)$r.squared
+#--------------------------------------------------------------------------------------------------------
+# ADI
+lm_ADI_NDVI<- lmList(ADI_select ~ MEAN_NDVI | Buffer, data=df)
+ADI_NDVI_lm<- summary(lm_ADI_NDVI)$r.squared 
+
+lm_ADI_NDBI<- lmList(ADI_select ~ MEAN_NDBI | Buffer, data=df)
+ADI_NDBI_lm<- summary(lm_ADI_NDBI)$r.squared
+
+#------------------------------------------------------------------------------------------------------
+#AEI #results same as BI-- need to figure out why
+lm_AEI_NDVI<- lmList(AEI_select ~ MEAN_NDVI | Buffer, data=df)
+AEI<-summary(lm_AEI_NDVI)$adjr.squared
+
+#----------------------------------------------------------------------------------------------------------
+#NDSI
+lm_NDSI_NDVI<- lmList(NDSI_select ~ MEAN_NDVI | Buffer, data=df)
+NDSI_NDVI_lm<-summary(lm_NDSI_NDVI)$r.squared
+
+lm_NDSI_NDBI<- lmList(NDSI_select ~ MEAN_NDBI | Buffer, data=df)
+NDSI_NDBI_lm<-summary(lm_NDSI_NDBI)$r.squared
+#---------------------------------------------------------------------------------------------------------
+#Biophony
+lm_NDSI_NDBIO_NDVI<- lmList(BIO_select ~ MEAN_NDVI | Buffer, data=df)
+BIO_NDVI_lm<-summary(lm_NDSI_NDBIO_NDVI)$r.squared
+
+lm_NDSI_NDBIO_NDBI<- lmList(BIO_select ~ MEAN_NDBI | Buffer, data=df)
+BIO_NDBI_lm<-summary(lm_NDSI_NDBIO_NDBI)$r.squared
+
+lm_NDSI_NDANT_NDVI<- lmList(ANT_select ~ MEAN_NDVI | Buffer, data=df)
+ANT_NDVI_lm<-summary(lm_NDSI_NDANT_NDVI)$r.squared
+
+lm_NDSI_NDBIO_NDBI<- lmList(BIO_select ~ MEAN_NDBI | Buffer, data=df)
+BIO_NDBI_lm<-summary(lm_NDSI_NDBIO_NDBI)$r.squared
+
+#-----------------------------------------------------------------------------------------------------------------
+buffername <- c(500, 1000,1500,2000,2500,3000)
+linear_rsquared <- data.frame(buffername, BI_NDVI_lm,ADI_NDVI_lm, NDSI_NDVI_lm, BIO_NDVI_lm,ANT_NDVI_lm)
+#-------------------------------------------------------------------------------------------------------------------------
+newdata <- subset(df, Buffer ==2000,
+                  select=filenames:MEAN_NDBI)
+lmbio<- lm(BIO_select~MEAN_NDVI, data = newdata)
+ggplot(data = newdata, 
+       aes (x = MEAN_NDVI, y = NDSI_select,)) +
+  geom_smooth(method = "lm") +
+  geom_point(alpha=0) + 
+  geom_point()+
+  theme(legend.position = "right") +
+  labs(y="NDSI", x = "NDVI")
+
+
+
+#Graphs
+#graph of R^2
+ggplot(data = linear_rsquared) + 
+ # geom_line (aes(x=linear_rsquared$buffername, y=linear_rsquared$ACI_NDVI_lm, color = 'ACI'))+
+  geom_line (aes(x=linear_rsquared$buffername, y=linear_rsquared$BI_NDVI_lm, color = 'BI'))+
+  geom_line (aes(x=linear_rsquared$buffername, y=linear_rsquared$ADI_NDVI_lm, color = 'ADI'))+
+  geom_line (aes(x=linear_rsquared$buffername, y=linear_rsquared$NDSI_NDVI_lm, color = 'NDSI'))+
+  geom_line (aes(x=linear_rsquared$buffername, y=linear_rsquared$BIO_NDVI_lm, color = 'BIOPHONY'))+
+  geom_line (aes(x=linear_rsquared$buffername, y=linear_rsquared$ANT_NDVI_lm, color = 'ANTHROPHONY'))+
+  labs(title = "Mean NDVI ~ R squared of metrics",x ="Focal Distance (meters)", y = "R squared of metrics")
+
+#graph of metric vs NDVI/NDBI
+
+#ACI
+
+#NDVI
+ggplot(data = df, 
+       aes (x = MEAN_NDVI, y = ACI, group=Buffer, color = factor(Buffer))) +
+  geom_smooth(method = "lm", se=F) +
+  geom_point(alpha=0) + 
+  geom_point(aes(color = factor(Buffer)))+
+  theme(legend.position = "right") +
+  labs(y="ACI", x = "NDVI")
+
+
+#graph of NDSI
+#NDVI
+
+view(df)
+ggplot(data = df, aes (x = MEAN_NDVI, y = NDSI_select,group=Buffer, color = factor(Buffer))) +
+  geom_smooth(method = "lm", se=F) +
+  geom_point(alpha=0) + 
+  geom_point(aes(color = factor(Buffer)))+
+  theme(legend.position = "right") +
+  labs(y="NDSI", x = "NDVI")
+
+
+
+#graph of BI
+#NDVI
+ggplot(data = df, 
+       aes (x = MEAN_NDVI, y = BI,group=Buffer, color = factor(Buffer))) +
+  geom_smooth(method = "lm", se=F) +
+  geom_point(alpha=0) + 
+  geom_point(aes(color = factor(Buffer)))+
+  theme(legend.position = "right") +
+  labs(y="BI", x = "NDVI")
+
+#Biophony
+ggplot(data = df, 
+       aes (x = MEAN_NDVI, y = BIO,group=Buffer, color = factor(Buffer)))+
+  geom_smooth(method = "lm", se=F) +
+  geom_point(alpha=0) + 
+  geom_point(aes(color = factor(Buffer)))+
+  theme(legend.position = "right") +
+  labs(y="BIOPHONY", x = "NDVI")
+
+
+#Antrophony
+ggplot(data = df, 
+       aes (x = MEAN_NDVI, y = ANT,group=Buffer, color = factor(Buffer)))+
+  geom_smooth(method = "lm", se=F) +
+  geom_point(alpha=0) + 
+  geom_point(aes(color = factor(Buffer)))+
+  theme(legend.position = "right") +
+  labs(y="ANT", x = "NDVI")
+
+##----------------------------------------------------------------------------------------
+#distance~sound indices
+sound_ind<-read.csv("DF_FullTable.csv")
+roads<- read.csv("merge_distance.csv")
+p_road<- read.csv("Primary_distance.csv")
+s_road<- read.csv("Secondary_distance.csv")
+l_road<- read.csv("Local.csv")
+u_road<- read.csv("Unpaved_distance.csv")
+b <- c("Leadmine Mountain", "Eagle Lake", "Wachusett Meadow", "Cooks Canyon", "Flat Rocks", "Lincoln Woods", "Rutland Brook","Lake Wampanoag","Braod Meadow Brook","Burncoat Pond", "Pierpoint Meadow")
+
+#function to reorder rows to match 
+reord_items <-function(y)
+{
+ y %>%
+   slice(match(b, Site))
+  
+}
+
+sound_ind<- sound_ind%>%
+  slice(match(b, SITE))
+
+#call function
+secondary_roads <-reord_items(s_road)
+primary_roads<- (reord_items(p_road))
+Local<- reord_items(l_road)
+unpaved<- reord_items(u_road)
+
+
+unpaved$type='unpaved'
+Local$type='Local'
+secondary_roads$type='secondary'
+primary_roads$type='primary'
+
+roads_all <- rbind(primary_roads, secondary_roads, Local, unpaved)
+
+# merge sound and distance 
+road_sound_sitename <- data.frame(sound_ind, roads_all)
+road_sound <- road_sound_sitename[c(3:9,40:41)]
+#------------------------------------------------------------------------------------------------
+#correlations
+primaryroads<- road_sound[road_sound$type == 'primary', ]
+primaryroads<- primaryroads$Distance
+secondaryroads<- road_sound[road_sound$type == 'secondary', ]
+secondaryroads <- secondaryroads$Distance
+localroads<- road_sound[road_sound$type == 'Local', ]
+localroads <- localroads$Distance
+un_rd<- road_sound[road_sound$type == 'unpaved', ]
+
+disdf<- data.frame(sound_ind,primaryroads, secondaryroads, localroads)
+drop <- c('X', 'SITE')
+
+
+dsdf<-disdf[,!(names(disdf) %in% drop)]
+dsdf <- setNames(dsdf, c("NDSI","Biophony","Anthrophony", "ACI", "ADI", "AEI", "BI", "Primary Roads", "Secondary Roads","Local Roads"))
+
+ggplot(data = dsdf,
+       aes (x = `Primary Roads`, y = ACI)) +
+  geom_smooth(method = "lm", se=T) +
+  geom_point(color = 'blue')+
+  geom_point(alpha=0) + 
+  theme(legend.position = "right") +
+  labs(y="ACI", x = "Distance to Primary Roads")
+ 
+
+
+drop <- c('X', 'SITE')
+corrplot(cor(dsdf,),
+          method = "circle", tl.col="black", tl.cex=seq(0.65, 0.65))
+ 
+ 
+#plots roads~distance----------------------------------------------------------------------------------------
+
+ggplot(data = road_sound,
+  aes (x = Distance, y = BIO_select,group=type, color = factor(type))) +
+  geom_smooth(method = "lm", se=F) +
+  geom_point(alpha=0) + 
+  geom_point(aes(color = factor(type)))+
+  theme(legend.position = "right") +
+  labs(y="BIO", x = "Distance")
+
+ggplot(data = road_sound,
+       aes (x = Distance, y = ANT_select,group=type, color = factor(type))) +
+  geom_smooth(method = "lm", se=F) +
+  geom_point(alpha=0) + 
+  geom_point(aes(color = factor(type)))+
+  theme(legend.position = "right") +
+  labs(y="ANT", x = "Distance")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
